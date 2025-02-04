@@ -1,0 +1,142 @@
+query example($sequences: [UnalignedSequenceInput]!) {
+  currentVersion {
+    text
+    publishDate
+  },
+  currentProgramVersion {
+    text
+    publishDate
+  },
+  sequenceAnalysis(sequences: $sequences) {
+    inputSequence {
+      header
+    }
+    validationResults(includeGenes: [CA, PR, RT, IN]) {
+      level,
+      message
+    },
+    alignedGeneSequences(includeGenes: [CA, PR, RT, IN, gag, pol, vif, vpr, vpu, tat, rev, env, nef]) {
+      gene {
+        name
+        refSequence
+        length
+        mutationTypes
+      }
+      firstAA
+      lastAA
+      firstNA
+      lastNA
+      matchPcnt
+      alignedNAs
+      alignedAAs
+      mutations {
+        reference
+        position
+        AAs
+        triplet
+        insertedNAs
+        isInsertion
+        isDeletion
+        isIndel
+        isAmbiguous
+        isApobecMutation
+        isApobecDRM
+        hasStop
+        isUnusual
+        types
+        primaryType
+        comments {
+          boundMutation {
+            AAs
+          }
+          type
+          text
+        }
+        text
+        shortText
+      }
+      APOBEC: mutations(filterOptions: [APOBEC]) {
+        position
+        AAs
+        text
+      }
+      APOBEC_DRM: mutations(filterOptions: [APOBEC_DRM]) {
+        text
+      }
+      DRM: mutations(filterOptions: [DRM]) {
+        text
+      }
+      SDRM: mutations(filterOptions: [SDRM]) {
+        text
+      }
+      unusualMutations: mutations(filterOptions: [UNUSUAL]) {
+        text
+      }
+      treatmentSelectedMutations: mutations(
+        filterOptions: [PI_TSM, NRTI_TSM, NNRTI_TSM, INSTI_TSM]
+      ) {
+        text
+      }
+      frameShifts {
+        position
+        isInsertion
+        isDeletion
+        size
+        NAs
+        text
+      }
+    }
+    drugResistance(includeGenes: [CA, PR, RT, IN]) {
+        gene {
+          name,
+        },
+        drugScores {
+          drugClass {
+            name,
+          },
+          drug {
+            displayAbbr,
+            fullName
+          },
+          score,
+          level,
+          text,
+          partialScores {
+            mutations {
+              text,
+            },
+          }
+        },
+        mutationsByTypes {
+          mutationType,
+          mutations {
+            text
+          }
+        }
+        commentsByTypes {
+          commentType,
+          comments {
+            text
+          }
+        }
+      }
+    firstTenCloseSubtypes: subtypesV2(first: 10) {
+      displayWithoutDistance
+      distancePcnt
+      referenceAccession
+    }
+    bestMatchingSubtype {
+      displayWithoutDistance,
+      display
+    }
+    mixturePcnt
+    mutations {
+      position
+      AAs
+      shortText
+    }
+    frameShifts {
+      text
+    }
+  }
+}
