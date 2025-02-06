@@ -1,5 +1,5 @@
 //
-// This file holds several functions specific to the workflow/testpipeline.nf in the nf-core/testpipeline pipeline
+// This file holds several functions specific to the workflow/hivgenopipe.nf in the HIVGenoPipe pipeline
 //
 
 class WorkflowTestpipeline {

@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/testpipeline/master/assets/schema_input.json",
-    "title": "nf-core/testpipeline pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/hivgenopipe/master/assets/schema_input.json",
+    "title": "HIVGenopipe pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {
@@ -23,6 +23,18 @@
                     {
                         "type": "string",
                         "pattern": "^\\S+\\.f(ast)?q\\.gz$"
+                    },
+                    {
+                        "type": "string",
+                        "maxLength": 0
+                    }
+                ]
+            },
+            "sample_type": {
+                "errorMessage": "sample type must be test, positive, or negative",
+                "anyOf": [
+                    {
+                        "type": "string"
                     },
                     {
                         "type": "string",

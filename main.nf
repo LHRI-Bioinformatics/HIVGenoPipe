@@ -27,7 +27,7 @@ WorkflowMain.initialise(workflow, params, log)
 include { HIVGENOPIPE } from './workflows/hiv_genopipe.nf'
 
 //
-// WORKFLOW: Run main nf-core/testpipeline analysis pipeline
+// WORKFLOW: Run main HIVGenoPipe analysis pipeline
 //
 workflow NFCORE_HIVGENOPIPE {
     HIVGENOPIPE ()

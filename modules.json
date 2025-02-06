@@ -1,6 +1,6 @@
 {
-    "name": "nf-core/testpipeline",
-    "homePage": "https://github.com/nf-core/testpipeline",
+    "name": "HIVGenoPipe",
+    "homePage": "https://github.com/LHRI-Bioinformatics/HIVGenoPipe",
     "repos": {
         "nf-core/modules": {
             "git_url": "https://github.com/nf-core/modules.git",
