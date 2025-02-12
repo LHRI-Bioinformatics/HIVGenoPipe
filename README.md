@@ -7,6 +7,9 @@
 
 
 # HIVGenoPipe Quick Start 
+## Sample data set
+The MiSeq data used for testing this pipeline are available under SRA BioProject accesstion [PRJNA1218827](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA1218827)
+
 ## Create samplesheet
 Use python fastq_dir_to_samplesheet.py on a fastq directory to create a samplesheet
 
