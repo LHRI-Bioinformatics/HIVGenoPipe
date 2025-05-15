@@ -15,12 +15,13 @@ Use python fastq_dir_to_samplesheet.py on a fastq directory to create a samplesh
 
 Example:
 ```python
-python fastq_dir_to_samplesheet.py test_data/filtered_reads/ test_sample_sheet.csv -sn -sd _ -si 2
+python fastq_dir_to_samplesheet.py <path/to/paired/fastq/files>
 ```
+The default output is `<fastq_directory>_<date_stamp>_samplsheet.csv`
 
 Samplesheets should follow this csv format:
 ```
-sample,fastq1,fastq1,sample_type
+sample,fastq1,fastq2,sample_type
 ```
 Sample types may be test, positive, or negative. Users may identify sample types within the directory using the `--positive_control_identifier <string>` or `--negative_control_identifier <string>` flags. Samples labeled as the positive/negative controls will generate separate statistics for reporting. Samples marked as positive controls may optionally be analyzed against a control reference (i.e. NL4.3)
 
