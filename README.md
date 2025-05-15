@@ -17,11 +17,14 @@ Example:
 ```python
 python fastq_dir_to_samplesheet.py <path/to/paired/fastq/files>
 ```
-The default output is `<fastq_directory>_<date_stamp>_samplsheet.csv`
+The default output is `<fastq_directory>_<date_stamp>_samplesheet.csv`
 
-Samplesheets should follow this csv format:
+Samplesheets should follow this example csv format:
 ```
 sample,fastq1,fastq2,sample_type
+HivPos,/full/path/to/HivPos_R1.fastq.gz,/full/path/to/HivPos_R2.fasta.gz,positive
+Sample-1,/full/path/to/Sample-1_R1.fastq.gz,/full/path/to/Sample-1_R2.fastq.gz,test
+
 ```
 Sample types may be test, positive, or negative. Users may identify sample types within the directory using the `--positive_control_identifier <string>` or `--negative_control_identifier <string>` flags. Samples labeled as the positive/negative controls will generate separate statistics for reporting. Samples marked as positive controls may optionally be analyzed against a control reference (i.e. NL4.3)
 
@@ -29,18 +32,25 @@ Sample types may be test, positive, or negative. Users may identify sample types
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-Example run statement:
+Example minimal test run statement:
 ```bash
-nextflow run /your/pipeline/dir/HIVGenoPipe/main.nf \
+nextflow run cloned/pipeline/dir/HIVGenoPipe/main.nf \
+-profile test,docker
+```
+This should let you know if your nextflow environment has been set up properly. This workflow's samplesheet is slightly different from the typical nf-core so it will error out at this point, but all modules and run parameters should appear.
+            
+Example full run statement:
+```bash
+nextflow run /cloned/pipeline/dir/HIVGenoPipe/main.nf \
 --input samplesheet.csv \
 -profile <docker/singularity/conda> \
 --outdir <OUTDIR> \
---fasta ref.fasta
+--fasta K03455.1_HXB2_737-5219.fasta
 ```
 
 Additional run options include:
 ```
---metadata - <.csv> file that includes info for samples and can merge by the sample_id column
+--metadata - <.csv> file that includes info for samples and can merge by the sample_id column to be appended to final report 
 --rundir - path to Illumina run directory, will generate run level statistics in final report
 --positive_control_ref – performs additional alignment of pos control samples to this second reference (i.e. NL4.3)
 ```
