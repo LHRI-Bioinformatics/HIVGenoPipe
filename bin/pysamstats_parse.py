@@ -60,7 +60,7 @@ IUPAC_dict = {
     "D": "AGT",
     "B": "CGT",
     "X": "GATC",
-    "N": "GATC",
+    "N": "ACGT",
 }
 
 # Small function for getting the key from a value in dict
