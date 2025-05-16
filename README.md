@@ -11,7 +11,12 @@
 The MiSeq data used for testing this pipeline are available under SRA BioProject accesstion [PRJNA1218827](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA1218827)
 
 ## Create samplesheet
-Use python fastq_dir_to_samplesheet.py on a fastq directory to create a samplesheet
+Use fastq_dir_to_samplesheet.py on a fastq directory to create a samplesheet
+
+By default, the script expects `_R1_001.fastq.gz` and `_R2_001.fastq.gz` extentions for paired reads. 
+
+Please note that fastq files should also be zipped.
+The file extensions and sample name detection options can be changed with script options (Use `--help` for all options)
 
 Example:
 ```python
