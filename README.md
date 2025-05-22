@@ -20,7 +20,7 @@ The file extensions and sample name detection options can be changed with script
 
 Example:
 ```python
-python fastq_dir_to_samplesheet.py <path/to/paired/fastq/files>
+python fastq_dir_to_samplesheet.py <path_to_paired_fastq_files>
 ```
 The default output is `<fastq_directory>_<date_stamp>_samplesheet.csv`
 
