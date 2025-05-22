@@ -27,8 +27,8 @@ The default output is `<fastq_directory>_<date_stamp>_samplesheet.csv`
 Samplesheets should follow this example csv format:
 ```
 sample,fastq1,fastq2,sample_type
-HivPos,/full/path/to/HivPos_R1_001.fastq.gz,/full/path/to/HivPos_R2_001.fastq.gz,positive
-Sample-1,/full/path/to/Sample-1_R1_001.fastq.gz,/full/path/to/Sample-1_R2_001.fastq.gz,test
+HivPos,full_path_to_HivPos_R1_001.fastq.gz,full_path_to_HivPos_R2_001.fastq.gz,positive
+Sample-1,full_path_to_Sample-1_R1_001.fastq.gz,full_path_to_Sample-1_R2_001.fastq.gz,test
 
 ```
 Sample types may be test, positive, or negative. Users may identify sample types within the directory using the `--positive_control_identifier <string>` or `--negative_control_identifier <string>` flags. Samples labeled as the positive/negative controls will generate separate statistics for reporting. Samples marked as positive controls may optionally be analyzed against a control reference (i.e. NL4.3)
