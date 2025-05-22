@@ -39,14 +39,14 @@ Sample types may be test, positive, or negative. Users may identify sample types
 
 Example minimal test run statement:
 ```bash
-nextflow run cloned/pipeline/dir/HIVGenoPipe/main.nf \
+nextflow run path_to_cloned_pipeline_dir(HIVGenoPipe)/main.nf \
 -profile test,docker
 ```
 This should let you know if your nextflow environment has been set up properly. This workflow's samplesheet is slightly different from the typical nf-core so it will error out at this point, but all modules and run parameters should appear.
             
 Example full run statement:
 ```bash
-nextflow run /cloned/pipeline/dir/HIVGenoPipe/main.nf \
+nextflow run path_to_cloned_pipeline_dir(HIVGenoPipe)/main.nf \
 --input samplesheet.csv \
 -profile <docker/singularity/conda> \
 --outdir <OUTDIR> \
