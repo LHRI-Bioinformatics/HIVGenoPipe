@@ -19,7 +19,8 @@ parser = argparse.ArgumentParser(description="Parse through the tsv output file 
 parser.add_argument('InputFile', type=File, help='<TSV> formatted file from output of \'pysamstats --type variation_strand\'')
 parser.add_argument('OutputFileName', type=str, help='<STR> Will be used as prefix for output tsv and/or FASTA')
 parser.add_argument('-a','--ambiguity', type=int, nargs='+', metavar='', help='<INT> Threshold for ambiguous base call as a percentage (if not provided, produce consensus only)')
-parser.add_argument('-d','--min-depth', type=int, metavar='', help='<INT> Minimum read depth permitted for base to be analyzed (default = 200), positions under threshold will be marked \'N\'', default=10)
+parser.add_argument('-d','--min-depth', type=int, metavar='', help='<INT> Minimum read depth permitted for base to be analyzed (default = 10), positions under threshold will be marked \'N\'', default=10)
+parser.add_argument('-q','--quality', type=int, metavar='', help='<INT>% Minimum percentage of positions exceeding read depth threshold permitted for passing quality (default = 90%), read depth threshold = min depth / amb %', default=90)
 parser.add_argument('-i','--info-output', help='Include TSV output of positions with possible InDels and overall quality metrics', action='store_true')
 parser.add_argument('-t','--tsv-output', help='Include TSV formatted output file with base call columns for every position', action='store_true')
 parser.add_argument('-c','--consensus-output', help='Include FASTA formatted consensus sequence (maximally likely base call at each position)', action='store_true')
@@ -276,7 +277,9 @@ else:
         collect_quality_metrics['Read depth threshold'].append(overall_read_depth)
         collect_quality_metrics['Quality'].append(quality_value)
 
-        if quality_value >= 90: # percentage needed to pass overall
+        quality_threshold = int(args.quality)
+        if quality_value >= quality_threshold: # percentage needed to pass overall
+        # 03/2025 update, change this percentage to a parameter we can change as needed
             quality_pass = True
         else:
             quality_pass = False
