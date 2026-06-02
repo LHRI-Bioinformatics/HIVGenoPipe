@@ -26,7 +26,7 @@ The default output is `<fastq_directory>_<date_stamp>_samplesheet.csv`
 
 Samplesheets should follow this example csv format:
 ```
-sample,fastq1,fastq2,sample_type
+sample,fastq_1,fastq_2,sample_type
 HivPos,full_path_to_HivPos_R1_001.fastq.gz,full_path_to_HivPos_R2_001.fastq.gz,positive
 Sample-1,full_path_to_Sample-1_R1_001.fastq.gz,full_path_to_Sample-1_R2_001.fastq.gz,test
 
