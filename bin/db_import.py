@@ -379,8 +379,8 @@ def build_stanford_dfs(jsonFile, seq_run_id):
         data = json.load(jsonIn)
         jsonIn.close()  # to change file access modes
 
-    hivdb_version=data['currentVersion']['text']
-    sierra_version=data['currentProgramVersion']['text']
+    hivdb_version=data['data']['currentVersion']['text']
+    sierra_version=data['data']['currentProgramVersion']['text']
 
     dfMutations=pd.DataFrame(columns = ['seq_id','protein','reference','mutation','mutation_site','codon','insertedNAs','isInsertion','isDeletion','isIndel','isAmbiguous','isApobecMutation','isApobecDRM','hasStop','isUnusual','mutation_type','remarks','sierra_version'])
 
@@ -388,7 +388,7 @@ def build_stanford_dfs(jsonFile, seq_run_id):
 
     dfProteinSequences=pd.DataFrame(columns = ['seq_id', 'protein', 'alignedNT','alignedAA', 'clade', 'matchPcnt','sierra_version'])
 
-    for sequence in data['sequenceAnalysis']:
+    for sequence in data['data']['sequenceAnalysis']:
         # need to reformat seq_id
         seqName=sequence['inputSequence']['header'] #3627-P245364-A-11A-Ayub_S15_T1.Amb15
         seqname_keep = seqName.rsplit("_",1)

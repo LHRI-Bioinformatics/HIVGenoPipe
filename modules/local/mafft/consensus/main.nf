@@ -1,6 +1,6 @@
 // custom script by Brad to collapse contigs from mafft output
 process MAFFT_CONSENSUS {
-    errorStrategy 'ignore'
+    // errorStrategy 'ignore'
     tag "$meta.id"
     label 'process_low'
 
@@ -26,7 +26,7 @@ process MAFFT_CONSENSUS {
     err_file=logs/mafft/${prefix}.mafft_consensus.err
 
     consensusFromMAFFT.py \\
-        ${fasta} ${prefix}_mafft_hybrid_consensus ${prefix}.mafft.hybrid_consensus.fasta 2>> \$err_file >> \$log_file \\
+        ${fasta} ${prefix}_mafft_hybrid_consensus ${prefix}.mafft.hybrid_consensus.fasta 0 6 2>> \$err_file >> \$log_file \\
 
     """
 }

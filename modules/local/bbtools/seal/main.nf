@@ -2,6 +2,7 @@ process BBTOOLS_SEAL {
     tag "$meta.id"
     label 'process_high'
 
+    conda "bioconda::bbmap=39.81"
     container 'staphb/bbtools:latest'
 
     publishDir "${params.outdir}", mode: 'copy'

@@ -11,9 +11,11 @@ process PYSAMSTATS_PARSER{
 
     output:
     tuple val(meta), path("*.tsv"), optional: true, emit: pysam_stats_results
+    tuple val(meta), path("*parsed.tsv"),   optional: true, emit: parsed_tsv
+    tuple val(meta), path("*Quality*.tsv"), optional: true, emit: quality_report
     tuple val(meta), path("*.fasta"), optional: true, emit: fastas
     tuple val(meta), path("*Amb*.fasta"), optional: true, emit: amb_fastas
-
+    tuple val(meta), path("*consensus.fasta"), optional: true, emit: consensus_fasta
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"

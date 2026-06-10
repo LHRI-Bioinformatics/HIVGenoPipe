@@ -1,5 +1,5 @@
 process SAMTOOLS_CONSENSUS {
-    tag "$fasta"
+    tag "$meta.id"
     label 'process_single'
 
     conda "bioconda::samtools=1.17"

@@ -8,6 +8,8 @@ import re
 from os.path import exists
 import argparse
 
+#05052026 - add multiple negative control handling
+
 #function to format interop, return this section
     # interop db import is done directly from file so no setup needed here
     # has average insert size and average read length as mean for all samples
@@ -236,19 +238,21 @@ def get_pos_control_stats(pos_control_file):
 # function to format negative control info
     # only need filtered HIV reads and Contig coverage
 def get_neg_control_stats(negative_control_file):
+    dict_of_neg_control_dfs = {}
+    # loop through in case of multiple negative controls
     for file in negative_control_file:
-        df=pd.read_csv(file, delimiter= "\t")
+        sample_name = str(file).rsplit("_", 1)[0]
+        df = pd.read_csv(file, delimiter="\t")
         df = df.drop(columns=(['Total Raw Read1', 'Total HIV Read1(% of raw)']))
 
         row_list = df.loc[0, 'Total HIV Read1':].values.flatten().tolist()
-        # print(row_list)
 
-        #two spaces added for sample into rows
-        neg_control_check = ["",""]
-        neg_control_ranges = ["",""]
+        # two spaces added for sample info rows
+        neg_control_check = ["", ""]
+        neg_control_ranges = ["", ""]
 
         # qc ranges
-        filtered_hiv_reads_range = 1000 #lte
+        filtered_hiv_reads_range = 1000  # lte
         contig_coverage_range = 0
 
         neg_control_ranges.append("<=" + str(filtered_hiv_reads_range))
@@ -269,17 +273,16 @@ def get_neg_control_stats(negative_control_file):
         df.insert(0, 'passing', neg_control_check)
         df.insert(2, 'qc ranges', neg_control_ranges)
 
-        return(df)
+        dict_of_neg_control_dfs[sample_name] = df
 
-
-
+    return dict_of_neg_control_dfs
 
 
 #function to format each sample, need to get negative control stats from sample type here because negative samples dont have separate stats
 def get_test_sample_stats(test_sample_files):
     dict_of_test_dfs = {}
     for file in test_sample_files:
-        sample_name = str(file).rsplit("_", 1)[0]
+        sample_name = str(file).rsplit("_", 2)[0]
         print("Sample name " + sample_name)
         dict_of_test_dfs[sample_name] = pd.read_csv(file, delimiter= "\t")
 
@@ -287,20 +290,22 @@ def get_test_sample_stats(test_sample_files):
 
     build_df = pd.concat(dict_of_test_dfs.values(), ignore_index=True)
     # print(build_df)
-    build_df = build_df.groupby(build_df["Sample"])
+    build_df = build_df.groupby(build_df["Sample"], as_index=False)
+
+    # check dfs
+    # for name, group in build_df:
+    #     print(f"Group: {name}")
+    #     print(group)
 
     final_df = build_df.first()
 
     print(final_df)
 
+
     average_insert_size = final_df['Average Insert Size (bp)'].mean()
     average_read_length = final_df['Average Read Length (bp)'].mean()
 
     return(final_df, average_insert_size, average_read_length)
-
-
-
-
 
 
 def File(MyFile):
@@ -358,59 +363,103 @@ def main():
 
     test_sample_files = samples_in_pre_not_in_post + poststats
 
-    # reconstruct for optional if no interop or control samples
-    with open('final_report.tsv','a') as f:
-        #need test samples first for interop input
-        test_samples_df = get_test_sample_stats(test_sample_files)
-        if not interop_file:
-            pass
-        else:
-            interop_stats_df = get_interop_stats(interop_file, test_samples_df[1], test_samples_df[2] )
-            f.write("Run Quality Control \n")
-            f.write("QC Metric\t QC Status\t Value\t QC Range \n")
-            interop_stats_df.to_csv(f, sep = "\t", header=False)
-            f.write("\n\n")
+    # --- Replace the original block with this ---
+    # decide filename prefix
+    prefix = args.output if args.output else "final_report"
+    # ensure output directory exists if prefix includes a path
+    out_dir = os.path.dirname(prefix)
+    if out_dir and not os.path.exists(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
 
-        if not negative_control_file:
-            pass
-        else:
-            neg_control_df = get_neg_control_stats(negative_control_file)
-            f.write("Negative Control \n")
-            f.write("QC Metric\t QC Status\t Value\t QC Range \n")
-            neg_control_df.to_csv(f, sep = "\t", header=False)
-            f.write("\n\n")
-        if not pos_control_file:
-            pass
-        else:
-            pos_control_dfs = get_pos_control_stats(pos_control_file) # is a dict of dfs
-            f.write("Positive Control \n")
+    # need test samples first for interop input
+    test_samples_df = get_test_sample_stats(test_sample_files)
+
+    # 1) Samples TSV (merged with metadata if present)
+    samples_outfile = f"{prefix}_samples.tsv"
+    if not metadata_file:
+        samples_df_to_write = test_samples_df[0]
+    else:
+        metadata_df = pd.read_csv(metadata_file[0])
+        metadata_df.rename(columns={"sample_id": "sampleId"}, inplace=True)
+        joindf = test_samples_df[0].merge(metadata_df, on="sampleId", how="left")
+        joindf = joindf.drop_duplicates()
+        samples_df_to_write = joindf
+
+    samples_df_to_write.to_csv(samples_outfile, sep="\t", index=False)
+    print(f"Wrote samples table -> {samples_outfile}")
+
+    # 2) Interop TSV (if present)
+    if interop_file:
+        interop_stats_df = get_interop_stats(interop_file, test_samples_df[1], test_samples_df[2])
+        interop_outfile = f"{prefix}_interop.tsv"
+        interop_stats_df.to_csv(interop_outfile, sep="\t", header=True)
+        print(f"Wrote interop QC -> {interop_outfile}")
+    else:
+        interop_outfile = None
+
+    # 3) Negative control TSVs (if present) — one file per negative control sample
+    neg_outfiles = []
+    if negative_control_file:
+        neg_control_dfs = get_neg_control_stats(negative_control_file)
+        neg_out = f"{prefix}_negctrl.tsv"
+        with open(neg_out, "w") as neg_f:
+            for name, df in neg_control_dfs.items():
+                neg_f.write(f"# {name}\n")
+                df.to_csv(neg_f, sep="\t", header=True)
+                neg_f.write("\n")
+        print(f"Wrote negative controls -> {neg_out}")
+    else:
+        neg_control_dfs = None
+
+    # 4) Positive control TSVs (if present) — one file per positive control sample
+    pos_outfiles = []
+    if pos_control_file:
+        pos_control_dfs = get_pos_control_stats(pos_control_file)
+        pos_out = f"{prefix}_posctrl.tsv"
+        with open(pos_out, "w") as pos_f:
             for name, df in pos_control_dfs.items():
-                df.to_csv(f, sep = "\t", header=False)
-                f.write("\n")
+                pos_f.write(f"# {name}\n")
+                df.to_csv(pos_f, sep="\t", header=True, index=False)
+                pos_f.write("\n")
+        pos_outfiles.append(pos_out)
+        print(f"Wrote positive controls -> {pos_out}")
+    else:
+        pos_control_dfs = None
+
+    # 5) Aggregated human-readable final report
+    final_report_path = "final_report.tsv"
+    with open(final_report_path, "w") as f:
+        # interop section
+        if interop_outfile:
+            f.write("Run Quality Control\n")
+            f.write("QC Metric\tQC Status\tValue\tQC Range\n")
+            interop_stats_df.to_csv(f, sep="\t", header=False)
             f.write("\n\n")
-        f.write("Sample Quality \n")
-        if metadata_file:
-            # read csv meta data as new df and append to output test_samples_df
-            metadata_df = pd.read_csv(metadata_file[0])
-            metadata_df.rename(columns={"sample_id": "sampleId"}, inplace=True)
-            joindf = test_samples_df[0].merge(metadata_df,on="sampleId", how="left")
-            joindf.to_csv(f, sep = "\t",index=False)
-        else:
-            test_samples_df[0].to_csv(f, sep = "\t")
 
+        # negative control section — one block per sample
+        if neg_control_dfs:
+            f.write("Negative Control\n")
+            for name, df in neg_control_dfs.items():
+                f.write(f"# {name}\n")
+                f.write("QC Metric\tQC Status\tValue\tQC Range\n")
+                df.to_csv(f, sep="\t", header=False)
+                f.write("\n")
+            f.write("\n")
 
+        # positive controls — one block per sample
+        if pos_control_dfs:
+            f.write("Positive Control\n")
+            for name, df in pos_control_dfs.items():
+                f.write(f"# {name}\n")
+                df.to_csv(f, sep="\t", header=False)
+                f.write("\n")
+            f.write("\n")
 
-    # write new file, stitch all dfs together, remove header lines
+        # sample quality
+        f.write("Sample Quality\n")
+        samples_df_to_write.to_csv(f, sep="\t", index=False)
 
+    print(f"Wrote aggregated final report -> {final_report_path}")
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-        # with pd.ExcelWriter(summaryOut) as writer:
-        # set_of_df[0].to_excel(writer, sheet_name='')
-        # set_of_df[1].to_excel(writer, sheet_name='')
-        # set_of_df[2].to_excel(writer, sheet_name='')

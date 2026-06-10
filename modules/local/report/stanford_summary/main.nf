@@ -1,5 +1,5 @@
 process REPORT_STANFORD_SUMMARY{
-    tag "$meta.id"
+    
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::pandas=1.5.2" : null)
@@ -8,14 +8,14 @@ process REPORT_STANFORD_SUMMARY{
         'quay.io/biocontainers/pandas:1.5.2' }"
 
     input:
-    tuple val(meta), path(json_files)
+    path(json_files)
 
     output:
-    tuple val(meta), path("*.tsv"), emit: dr_summaries
+    path("*.tsv"), emit: dr_summaries
 
     script: // This script is bundled with the pipeline, in nf-core/hivgenopipe/bin/
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    
     """
     stanford_summary.py -j ${json_files}
     """

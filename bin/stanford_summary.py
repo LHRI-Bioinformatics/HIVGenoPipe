@@ -5,6 +5,7 @@ import pandas as pd
 from inspect import getsourcefile
 import os
 import sys
+# import vigilant_db_utilities
 from os import stat
 from pwd import getpwuid
 import re
@@ -20,8 +21,8 @@ def parseSierraCharacterization(jsonFile):
         data = json.load(jsonIn)
         jsonIn.close()  # to change file access modes
 
-    hivdb_version=data['currentVersion']['text']
-    sierra_version=data['currentProgramVersion']['text']
+    hivdb_version=data['data']['currentVersion']['text']
+    sierra_version=data['data']['currentProgramVersion']['text']
 
     dfMutations=pd.DataFrame(columns = ['seq_id','protein','reference','mutation','mutation_site','codon','insertedNAs','isInsertion','isDeletion','isIndel','isAmbiguous','isApobecMutation','isApobecDRM','hasStop','isUnusual','mutation_type','remarks','sierra_version'])
 
@@ -29,7 +30,7 @@ def parseSierraCharacterization(jsonFile):
 
     dfProteinSequences=pd.DataFrame(columns = ['seq_id', 'protein', 'alignedNT','alignedAA', 'clade', 'matchPcnt','sierra_version'])
 
-    for sequence in data['sequenceAnalysis']:
+    for sequence in data['data']['sequenceAnalysis']:
         seqName=sequence['inputSequence']['header']
         clade=sequence['bestMatchingSubtype']['displayWithoutDistance']
         print("Parsing characterization data for {}".format(seqName))

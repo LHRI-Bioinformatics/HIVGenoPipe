@@ -6,8 +6,8 @@ import os.path
 import pandas as pd
 
 # Author: Lynn Dotrang
-# 12/2024
-# Added more dynamic consensus calling
+# 12/29/2025
+# Add separate quality report
 
 def File(MyFile):
     if not os.path.isfile(MyFile):
@@ -86,7 +86,6 @@ def base_amb_call(amb, min_read_depth):
         base_list.append("")
         if df_pos['reads_all'][ind] < min_read_depth:
             base_list[ind] = base_list[ind] + "N"
-
         else:
             # # keep list of depths over the min, they can still be under the overall read depth needed per ambiguity
             passing_depths.append(df_pos['reads_all'][ind])
@@ -113,6 +112,7 @@ def base_amb_call(amb, min_read_depth):
             ## example: is pos depth = 12, A = 5, G = 7, base_detected should be false based on above logic
             if base_detected is False:
                 base_list[ind] = base_list[ind] + "N"
+                 
 
 
         # Search for InDels and flag
@@ -151,12 +151,14 @@ def base_amb_call(amb, min_read_depth):
 def consensus_call(min_read_depth):
     max_list = []
     max_indel_list = []
+    
     for ind in df_pos.index:
         # keep track of maximal base read
         max_value = 0
         max_list.append("")
         if df_pos['reads_all'][ind] < min_read_depth:
             max_list[ind] = max_list[ind] + "N"
+            
         else:
             # if the base > 0, this will be the new max to append
             if df_pos['A_frac'][ind] > max_value:
@@ -214,7 +216,7 @@ def consensus_call(min_read_depth):
     # Need for FASTAs write out
     return max_IUPAC_list
 
-def calculate_quality(df, depth_threshold):
+def calculate_quality(df, depth_threshold,min_depth):
     amb_column_name = df.columns[2]
     # Filter out rows where the amb_base_column is a deletion
     filtered_df = df[df[amb_column_name] != ""]
@@ -225,24 +227,30 @@ def calculate_quality(df, depth_threshold):
     trimmed_df = filtered_df.loc[start_index:end_index]
     # Count rows where 'reads_all' >= depth_threshold
     count_reads_above_threshold = (trimmed_df['reads_all'] >= depth_threshold).sum()
+    # Count rows where reads all < min depth 
+    count_positions_below_min_depth = (trimmed_df['reads_all'] < min_depth).sum()
     # Calculate the total number of rows in trimmed_df
     total_rows = len(trimmed_df)
     # Calculate the proportion
     quality = count_reads_above_threshold / total_rows if total_rows > 0 else 0
 
-    quality = quality * 100
+    quality_percent = quality * 100
 
-    return quality
+    return quality_percent, count_reads_above_threshold, count_positions_below_min_depth
 
 # Perform function, make sure input params are numbers
 # Grab the output list for FASTA
 if args.ambiguity is None:
     pass
 else:
+    quality_string = "Positions below min depth (" + str(args.min_depth) + ")"
     collect_quality_metrics = {
         "Ambiguity": [],
         "Read depth threshold": [],
-        "Quality": []
+        "# Positions above threshold" : [],
+        "Quality (% pos > depth threshold)": [],
+        "Quality pass": [],
+        quality_string : []
         }
     for amb in args.ambiguity:
         # added passing check in function return
@@ -267,7 +275,7 @@ else:
         # check overall quality
         overall_read_depth = (args.min_depth/amb) * 100
 
-        quality_value = calculate_quality(amb_base_df,overall_read_depth)
+        quality_calcs = calculate_quality(amb_base_df,overall_read_depth, args.min_depth)
 
 
 
@@ -275,21 +283,28 @@ else:
         # add to metrics
         collect_quality_metrics['Ambiguity'].append(amb)
         collect_quality_metrics['Read depth threshold'].append(overall_read_depth)
-        collect_quality_metrics['Quality'].append(quality_value)
+        collect_quality_metrics['# Positions above threshold'].append(quality_calcs[1])
+        collect_quality_metrics['Quality (% pos > depth threshold)'].append(quality_calcs[0])
 
         quality_threshold = int(args.quality)
-        if quality_value >= quality_threshold: # percentage needed to pass overall
+        if quality_calcs[0] >= quality_threshold: # percentage needed to pass overall
         # 03/2025 update, change this percentage to a parameter we can change as needed
             quality_pass = True
+            collect_quality_metrics['Quality pass'].append("PASS")
         else:
             quality_pass = False
+            collect_quality_metrics['Quality pass'].append("FAIL")
 
         if quality_pass is True:
+            quality_output_filename = args.OutputFileName + "_QualityReport.tsv"
             with open(args.OutputFileName + ".Amb" + str(amb) + ".fasta", 'w') as f:
                 f.write('>' + args.OutputFileName + ".Amb" + str(amb) + '_IUPAC'+'\n' + IUPAC_string + '\n')
         else: # add warning in file and fasta name
-            with open("QUALITY_FAIL_" + args.OutputFileName + ".Amb" + str(amb) + ".fasta", 'w') as f:
+            quality_output_filename = args.OutputFileName + "_QualityFailReport.tsv"
+            with open(args.OutputFileName + ".Amb" + str(amb) + ".fasta", 'w') as f:
                 f.write('>' + args.OutputFileName + ".Amb" + str(amb) + '_IUPAC_QUALITY_FAIL'+'\n' + IUPAC_string + '\n')
+    # append positions under min depth just once
+    collect_quality_metrics[quality_string].append(quality_calcs[2])
 
 if args.consensus_output is True:
     max_fasta_list = consensus_call(args.min_depth)
@@ -311,7 +326,7 @@ else:
     pass
 
 if args.info_output == True:
-    output_filename = args.OutputFileName + "_Report.tsv"
+    output_filename = args.OutputFileName + "_InDelReport.tsv"
     df_indel = df_pos.copy()
     amb_values = args.ambiguity
     amb_values.sort()
@@ -322,8 +337,9 @@ if args.info_output == True:
     df_indel = df_indel.drop(columns=['deletions', 'insertions', 'A', 'T', 'C', 'G', 'N'])
     df_indel.to_csv(output_filename, sep="\t")
     # add quality stuff here
-    with open(output_filename, 'a') as k:
-        k.write('\n\n\n' + 'Quality Metrics' + '\n')
+    
+    with open(quality_output_filename, 'w') as k:
+        k.write('Quality Metrics' + '\n')
         for key, value in collect_quality_metrics.items():
             k.write('%s\t' % key)
             for i in value:

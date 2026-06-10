@@ -3,6 +3,8 @@ process BBTOOLS_REFORMAT {
     tag "$meta.id"
     label 'process_high'
     cpus 4
+    
+    conda "bioconda::bbmap=39.81"
     container 'staphb/bbtools:latest'
 
     input:
