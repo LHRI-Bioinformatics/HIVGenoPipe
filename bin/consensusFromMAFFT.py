@@ -63,10 +63,20 @@ def column_call(column_chars, ref_base):
 
     if len(top_chars) == 1:
         return top_chars[0]
-    elif ref_base in top_chars:
-        return ref_base          # reference breaks the tie
-    else:
-        return sorted(top_chars)[0]   # deterministic fallback (no ref match)
+    
+    # In a tie, a real base always beats '-'
+    non_gap_tied = [c for c in top_chars if c != '-']
+    if non_gap_tied:
+        top_chars = non_gap_tied
+        if len(top_chars) == 1:
+            return top_chars[0]
+
+    # Tie between bases only — reference breaks it
+    if ref_base in top_chars:
+        return ref_base
+    
+    # Tie between bases with no reference match — deterministic fallback
+    return sorted(top_chars)[0]
 
 
 def create_hybrid_consensus(sequences, min_del=DEFAULT_MIN_DEL, max_del=DEFAULT_MAX_DEL):
