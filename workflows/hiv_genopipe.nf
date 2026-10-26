@@ -94,7 +94,7 @@ include { SAMTOOLS_STATS                              } from '../modules/nf-core
 include { PYSAMSTATS as PYSAMSTATS_2                  } from '../modules/local/pysamstats/pysamstats/main'
 include { PYSAMSTATS_PARSER as PYSAMSTATS_PARSER_2    } from '../modules/local/pysamstats/parser/main'
 include { REPORT_GAGPOL_QUALITY                       } from '../modules/local/report/gagpol_quality/main'
-include { REPORT_SAMTOOLS_DEPTH_AND_STATS             } from '../modules/local/report/samtools_depth_and_stats/main'
+include { REPORT_SAMTOOLS_DEPTH_AND_STATS             } from '../modules/local/report/samtools_depth_and_stats/main_edit'
 
 
 include { REPORT_NGS_STATS as REPORT_NGS_STATS_ALL    } from '../modules/local/report/ngs_stats/main_new_copy'
