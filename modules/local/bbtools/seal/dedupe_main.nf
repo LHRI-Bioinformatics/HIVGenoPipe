@@ -7,7 +7,7 @@ process BBTOOLS_SEAL {
 
     publishDir "${params.outdir}", mode: 'copy'
     publishDir "${params.outdir}", mode: 'copy', pattern: "logs/filter_reads/*.{log,err}"
-    echo false
+    debug false
 
 
 
